@@ -152,9 +152,31 @@ class Score:
         self.rct = self.img.get_rect()
         self.rct.center = (100, HEIGHT-50)
 
+
     def update(self, screen: pg.Surface):
         self.img = self.fonto.render(f"スコア：{self.score}", 0, self.color)
         screen.blit(self.img, self.rct)
+
+class Explosion:
+    """
+    爆発エフェクトを表示するクラス
+    """
+    def __init__(self, xy: list[int, int]):
+        self.imgs = [
+            pg.image.load("fig/explosion.gif"),
+            pg.transform.flip(pg.image.load("fig/explosion.gif"), True, True)
+        ]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = xy
+        self.life = 10
+
+
+    def update(self, screen: pg.Surface):
+        self.life -= 1
+        if self.life > 0:
+            screen.blit(self.imgs[self.life % 2], self.rct)
+
+
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -169,7 +191,7 @@ def main():
     # beam = None  # ゲーム初期化時にはビームは存在しない
     beams = []  #ビーム用の空のリスト
     score = Score()  #スコアの初期化
-    
+    explosions = []  #Explosionインスタンス用の空リスト
     clock = pg.time.Clock()
     tmr = 0
 
@@ -196,25 +218,31 @@ def main():
                 time.sleep(1)
                 return
         
-        # if bomb is not None:
-        for beam in beams:
-            for i, bomb in enumerate(bombs):
-                if beam is not None:
-                    if beam.rct.colliderect(bomb.rct):  #ビームと爆弾が衝突していたら
+    
+        for i, bomb in enumerate(bombs):
+            for beam in beams:
+                if beam is not None and bomb is not None:
+                    if beam.rct.colliderect(bomb.rct):  # ビームと爆弾が衝突していたら
+                        score.score += 1  # スコア加算
+                        explosions.append(Explosion(bomb.rct.center))  # 爆発エフェクトを生成
                         beam = None
                         bombs[i] = None
-                        bird.change_img(6, screen)
-                        score.score += 1  #爆弾とビームが衝突したらスコア加算
+                        bird.change_img(6, screen)  # こうかとん喜び
+                        
         bombs = [bomb for bomb in bombs if bomb is not None]  # 爆弾リスト更新
         score.update(screen)  #スコア表示
         beams = [beam for beam in beams if check_bound(beam.rct) == (True, True)]  #画面外削除
+        explosions = [e for e in explosions if e.life > 0]  #爆発リスト更新
+
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
         for beam in beams:
-            beam.update(screen)  #ビーム更新
+            beam.update(screen)  #ビームの更新
         for bomb in bombs:   
             bomb.update(screen)
+        for explosion in explosions:
+            explosion.update(screen)  #爆発の更新
         pg.display.update()
         tmr += 1
         clock.tick(50)
