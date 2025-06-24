@@ -106,8 +106,6 @@ class Beam:
         self.rct.centery = bird.rct.centery + bird.rct.height * self.vy / 5
         self.rct.left = bird.rct.right  # ビームの左座標＝こうかとんの右座標
         
-        
-
 
     def update(self, screen: pg.Surface):
         """
