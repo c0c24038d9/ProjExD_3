@@ -140,6 +140,21 @@ class Bomb:
         self.rct.move_ip(self.vx, self.vy)
         screen.blit(self.img, self.rct)
 
+class Score:
+    """
+    画面左下にスコアを表示するクラス
+    """
+    def __init__(self):
+        self.fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 30)
+        self.color = (0, 0, 255)
+        self.score = 0
+        self.img = self.fonto.render(f"スコア：{self.score}", 0, self.color)
+        self.rct = self.img.get_rect()
+        self.rct.center = (100, HEIGHT-50)
+
+    def update(self, screen: pg.Surface):
+        self.img = self.fonto.render(f"スコア：{self.score}", 0, self.color)
+        screen.blit(self.img, self.rct)
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -152,6 +167,7 @@ def main():
     #     bombs.append(Bomb((255, 0, 0), 10))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]  # 爆弾5個生成(内包表記ver.)
     beam = None  # ゲーム初期化時にはビームは存在しない
+    score = Score()  #スコアの初期化
     clock = pg.time.Clock()
     tmr = 0
     while True:
@@ -182,7 +198,9 @@ def main():
                     beam = None
                     bombs[i] = None
                     bird.change_img(6, screen)
+                    score.score += 1  #爆弾とビームが衝突したらスコア加算
         bombs = [bomb for bomb in bombs if bomb is not None]  # 爆弾リスト更新
+        score.update(screen)  #スコア表示
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
